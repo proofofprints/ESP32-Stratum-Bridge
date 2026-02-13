@@ -31,16 +31,17 @@ func main() {
 	flag.BoolVar(&cfg.PrintStats, "stats", cfg.PrintStats, "true to show periodic stats to console, default `true`")
 	flag.StringVar(&cfg.RPCServer, "kaspa", cfg.RPCServer, "address of the kaspad node, default `localhost:16110`")
 	flag.DurationVar(&cfg.BlockWaitTime, "blockwait", cfg.BlockWaitTime, "time in ms to wait before manually requesting new block, default `500`")
-	flag.UintVar(&cfg.MinShareDiff, "mindiff", cfg.MinShareDiff, "minimum share difficulty to accept from miner(s), default `4`")
+	flag.Float64Var(&cfg.MinShareDiff, "mindiff", cfg.MinShareDiff, "minimum share difficulty to accept from miner(s), default `0.0001`")
 	flag.UintVar(&cfg.ExtranonceSize, "extranonce", cfg.ExtranonceSize, "size in bytes of extranonce, default `0`")
 	flag.StringVar(&cfg.PromPort, "prom", cfg.PromPort, "address to serve prom stats, default `:2112`")
 	flag.BoolVar(&cfg.UseLogFile, "log", cfg.UseLogFile, "if true will output errors to log file, default `true`")
 	flag.StringVar(&cfg.HealthCheckPort, "hcp", cfg.HealthCheckPort, `(rarely used) if defined will expose a health check on /readyz, default ""`)
 	flag.Parse()
 
-	if cfg.MinShareDiff == 0 {
-		cfg.MinShareDiff = 4
+	if cfg.MinShareDiff <= 0 {
+		cfg.MinShareDiff = 0.0001 // Default for low-hashrate miners (ESP32, KASDeck)
 	}
+
 	if cfg.BlockWaitTime == 0 {
 		cfg.BlockWaitTime = 5 * time.Second // this should never happen due to kas 1s block times
 	}
@@ -51,7 +52,7 @@ func main() {
 	log.Printf("\tstratum:         %s", cfg.StratumPort)
 	log.Printf("\tprom:            %s", cfg.PromPort)
 	log.Printf("\tstats:           %t", cfg.PrintStats)
-	log.Printf("\tlog:             %t", cfg.UseLogFile)
+	log.Printf("\tmin diff:        %.4f", cfg.MinShareDiff)
 	log.Printf("\tmin diff:        %d", cfg.MinShareDiff)
 	log.Printf("\tblock wait:      %s", cfg.BlockWaitTime)
 	log.Printf("\textranonce size: %d", cfg.ExtranonceSize)
