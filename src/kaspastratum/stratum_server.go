@@ -24,7 +24,7 @@ type BridgeConfig struct {
 	UseLogFile      bool          `yaml:"log_to_file"`
 	HealthCheckPort string        `yaml:"health_check_port"`
 	BlockWaitTime   time.Duration `yaml:"block_wait_time"`
-	MinShareDiff    uint          `yaml:"min_share_diff"`
+	MinShareDiff    float64          `yaml:"min_share_diff"`
 	ExtranonceSize  uint          `yaml:"extranonce_size"`
 }
 
@@ -78,14 +78,14 @@ func ListenAndServe(cfg BridgeConfig) error {
 
 	shareHandler := newShareHandler(ksApi.kaspad)
 	minDiff := cfg.MinShareDiff
-	if minDiff < 1 {
-		minDiff = 1
+	if minDiff < 0 {
+		minDiff = 0.0001
 	}
 	extranonceSize := cfg.ExtranonceSize
 	if extranonceSize > 3 {
 		extranonceSize = 3
 	}
-	clientHandler := newClientListener(logger, shareHandler, float64(minDiff), int8(extranonceSize))
+	clientHandler := newClientListener(logger, shareHandler, minDiff, int8(extranonceSize))
 	handlers := gostratum.DefaultHandlers()
 	// override the submit handler with an actual useful handler
 	handlers[string(gostratum.StratumMethodSubmit)] =
